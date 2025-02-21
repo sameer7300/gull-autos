@@ -20,14 +20,25 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip
+# Upgrade pip and install basic tools
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Install Python dependencies in stages
+# Copy requirements
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt || \
-    (pip install --no-cache-dir -r requirements.txt 2>&1 | tee pip_error.log && \
-    echo "Error log:" && cat pip_error.log && exit 1)
+
+# Install base dependencies first
+RUN pip install --no-cache-dir urllib3>=1.25.4,<2.1.0 requests>=2.31.0
+
+# Install Django and core dependencies
+RUN pip install --no-cache-dir \
+    "Django>=4.2,<5.0" \
+    "gunicorn>=21.2.0" \
+    "psycopg2-binary>=2.9.9" \
+    "whitenoise>=6.6.0" \
+    "python-dotenv>=1.0.0"
+
+# Install the rest of the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
 COPY . .
