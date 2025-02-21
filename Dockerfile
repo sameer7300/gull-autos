@@ -43,3 +43,6 @@ RUN chmod +x /app/build.sh
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
     CMD curl -f "http://0.0.0.0:$PORT/health/" || exit 1
+
+# Set the default command
+CMD gunicorn gull_autos.wsgi:application --bind "0.0.0.0:$PORT"
