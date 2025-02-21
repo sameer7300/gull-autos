@@ -7,8 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=gull_autos.settings \
     DEBUG=False \
     ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
-    PYTHONPATH=/app \
-    PORT=8000
+    PYTHONPATH=/app
 
 # Set work directory
 WORKDIR /app
@@ -43,12 +42,9 @@ RUN mkdir -p /app/staticfiles /app/media
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
-# Ensure start script is executable
-RUN chmod +x /app/start.sh
-
-# Run startup script
-ENTRYPOINT ["/app/start.sh"]
+# Start command
+CMD python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 0 gull_autos.wsgi:application
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f "http://localhost:${PORT:-8000}/health/" || exit 1
+    CMD curl -f http://localhost:8000/health/ || exit 1
