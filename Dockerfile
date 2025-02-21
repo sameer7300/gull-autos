@@ -7,7 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=gull_autos.settings \
     DEBUG=False \
     ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
-    PYTHONPATH=/app
+    PYTHONPATH=/app \
+    PORT=10000 \
+    WEB_CONCURRENCY=4
 
 # Set work directory
 WORKDIR /app
@@ -48,6 +50,6 @@ RUN chmod +x /app/entrypoint.sh
 # Use shell form for CMD to ensure environment variables are expanded
 CMD sh /app/entrypoint.sh
 
-# Configure health check to use Railway's PORT
+# Configure health check to use exact port
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD if [ -z "$PORT" ]; then PORT=8000; fi && curl -f "http://localhost:$PORT/health/" || exit 1
+    CMD curl -f "http://localhost:10000/health/" || exit 1

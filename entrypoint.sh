@@ -1,11 +1,12 @@
 #!/bin/sh
-# Ensure PORT is set
-if [ -z "$PORT" ]; then
-    export PORT=8000
-fi
-
 # Run migrations
 python manage.py migrate --noinput
 
-# Start Gunicorn with the PORT from Railway
-exec gunicorn gull_autos.wsgi:application --bind "0.0.0.0:$PORT" --workers 2 --threads 4 --timeout 0
+# Start Gunicorn with Railway's exact configuration
+exec gunicorn gull_autos.wsgi:application \
+    --bind "0.0.0.0:10000" \
+    --workers "$WEB_CONCURRENCY" \
+    --threads 4 \
+    --timeout 0 \
+    --access-logfile - \
+    --error-logfile -
