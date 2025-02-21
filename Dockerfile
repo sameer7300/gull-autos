@@ -5,6 +5,9 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV PORT 8000
+ENV DJANGO_SETTINGS_MODULE gull_autos.settings
+ENV DEBUG False
+ENV ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1"
 
 # Set work directory
 WORKDIR /app
@@ -35,8 +38,11 @@ RUN pip install --no-cache-dir -r requirements.txt || true
 # Copy project
 COPY . .
 
+# Create static directory
+RUN mkdir -p /app/staticfiles
+
 # Collect static files
-RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput --clear
 
 # Run gunicorn
 CMD gunicorn --bind 0.0.0.0:$PORT gull_autos.wsgi:application
