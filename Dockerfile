@@ -42,9 +42,12 @@ RUN mkdir -p /app/staticfiles /app/media
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
-# Start command
-CMD python manage.py migrate --noinput && gunicorn --bind 0.0.0.0:8000 --workers 2 --threads 4 --timeout 0 gull_autos.wsgi:application
+# Make entrypoint script executable
+RUN chmod +x /app/entrypoint.sh
 
-# Configure health check
+# Use shell form for CMD to ensure environment variables are expanded
+CMD sh /app/entrypoint.sh
+
+# Configure health check to use Railway's PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
+    CMD if [ -z "$PORT" ]; then PORT=8000; fi && curl -f "http://localhost:$PORT/health/" || exit 1
