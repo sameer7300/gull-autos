@@ -25,6 +25,9 @@ RUN apt-get update && apt-get install -y \
     netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
+# Install gunicorn
+RUN pip install gunicorn
+
 # Copy requirements and project
 COPY . .
 
