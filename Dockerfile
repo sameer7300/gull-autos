@@ -8,7 +8,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DEBUG=False \
     ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
     PYTHONPATH=/app \
-    PORT=10000 \
     WEB_CONCURRENCY=4
 
 # Set work directory
@@ -32,24 +31,15 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 # Copy requirements files
 COPY requirements-base.txt ./
 
-# Install base dependencies first
-RUN pip install --no-cache-dir -r requirements-base.txt
-
 # Copy project
 COPY . .
 
 # Create static and media directories
 RUN mkdir -p /app/staticfiles /app/media
 
-# Collect static files
-RUN python manage.py collectstatic --noinput --clear
+# Make build script executable
+RUN chmod +x /app/build.sh
 
-# Make entrypoint script executable
-RUN chmod +x /app/entrypoint.sh
-
-# Use shell form for CMD to ensure environment variables are expanded
-CMD sh /app/entrypoint.sh
-
-# Configure health check to use exact port
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f "http://localhost:10000/health/" || exit 1
+# Configure health check
+HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
+    CMD curl -f "http://localhost:${PORT}/health/" || exit 1
