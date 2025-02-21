@@ -8,6 +8,7 @@ ENV PORT 8000
 ENV DJANGO_SETTINGS_MODULE gull_autos.settings
 ENV DEBUG False
 ENV ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1"
+ENV PYTHONPATH=/app
 
 # Set work directory
 WORKDIR /app
@@ -21,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
     libpq-dev \
+    netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install basic tools
@@ -38,13 +40,21 @@ RUN pip install --no-cache-dir -r requirements.txt || true
 # Copy project
 COPY . .
 
-# Create static directory
-RUN mkdir -p /app/staticfiles
+# Create static and media directories
+RUN mkdir -p /app/staticfiles /app/media
 
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
-# Run gunicorn
-CMD gunicorn --bind 0.0.0.0:$PORT gull_autos.wsgi:application
+# Create startup script
+RUN echo '#!/bin/bash\n\
+python manage.py migrate --noinput\n\
+gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 0 gull_autos.wsgi:application' > /app/start.sh \
+    && chmod +x /app/start.sh
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:$PORT || exit 1
+# Run startup script
+CMD ["/app/start.sh"]
+
+# Configure health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:$PORT/ || exit 1

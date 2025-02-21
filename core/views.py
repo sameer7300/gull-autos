@@ -806,3 +806,9 @@ def create_notification(user, notification_type, message, link):
         link=link
     )
     return notification
+
+def health_check(request):
+    """
+    Simple health check endpoint that returns a 200 OK response.
+    """
+    return JsonResponse({"status": "ok"})
