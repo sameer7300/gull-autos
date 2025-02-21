@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PORT 8000
 
 # Set work directory
 WORKDIR /app
@@ -26,4 +27,6 @@ COPY . .
 RUN python manage.py collectstatic --noinput
 
 # Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "gull_autos.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:$PORT", "gull_autos.wsgi:application"]
+
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl --fail http://localhost:$PORT || exit 1
