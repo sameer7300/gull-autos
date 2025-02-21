@@ -20,3 +20,4 @@ django-allauth>=0.59.0
 requests>=2.31.0
 urllib3>=1.25.4,<2.1.0
 Pillow>=10.1.0
+dj-database-url>=2.1.0

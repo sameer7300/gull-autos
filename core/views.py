@@ -170,11 +170,19 @@ def admin_categories(request):
     return render(request, 'admin/categories.html', {'categories': categories})
 
 def home(request):
-    context = {
-        'featured_products': Product.objects.all()[:6],  # Get first 6 products
-        'testimonials': Testimonial.objects.all()[:3],   # Get first 3 testimonials
-        'categories': Category.objects.all()[:4],        # Get first 4 categories
-    }
+    try:
+        context = {
+            'featured_products': Product.objects.all()[:6],  # Get first 6 products
+            'testimonials': Testimonial.objects.all()[:3],   # Get first 3 testimonials
+            'categories': Category.objects.all()[:4],        # Get first 4 categories
+        }
+    except Exception:
+        # Fallback to empty context if database is not available
+        context = {
+            'featured_products': [],
+            'testimonials': [],
+            'categories': []
+        }
     return render(request, 'home.html', context)
 
 class AboutView(TemplateView):
