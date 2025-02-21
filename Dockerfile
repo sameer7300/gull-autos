@@ -28,8 +28,9 @@ RUN apt-get update && apt-get install -y \
 # Upgrade pip and install basic tools
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# Copy requirements files
-COPY requirements-base.txt ./
+# Copy requirements and install dependencies
+COPY requirements-base.txt .
+RUN pip install --no-cache-dir -r requirements-base.txt
 
 # Copy project
 COPY . .
@@ -37,12 +38,15 @@ COPY . .
 # Create static and media directories
 RUN mkdir -p /app/staticfiles /app/media
 
-# Make build script executable
-RUN chmod +x /app/build.sh
+# Collect static files
+RUN python manage.py collectstatic --noinput --clear
+
+# Run migrations
+RUN python manage.py migrate --noinput
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
     CMD curl -f "http://0.0.0.0:$PORT/health/" || exit 1
 
-# Set the default command
+# Start command
 CMD gunicorn gull_autos.wsgi:application --bind "0.0.0.0:$PORT"
