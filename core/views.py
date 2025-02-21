@@ -4,7 +4,7 @@ from .models import Product, Category, BlogPost, Testimonial, Contact, Newslette
 from django.db.models import Q
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -818,5 +818,6 @@ def create_notification(user, notification_type, message, link):
 def health_check(request):
     """
     Simple health check endpoint that returns a 200 OK response.
+    Does not depend on database availability.
     """
-    return JsonResponse({"status": "ok"})
+    return HttpResponse("OK", content_type="text/plain")

@@ -7,8 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DJANGO_SETTINGS_MODULE=gull_autos.settings \
     DEBUG=False \
     ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
-    PYTHONPATH=/app \
-    PORT=8000
+    PYTHONPATH=/app
 
 # Set work directory
 WORKDIR /app
@@ -47,29 +46,28 @@ RUN mkdir -p /app/staticfiles /app/media
 RUN python manage.py collectstatic --noinput --clear
 
 # Create startup script
-COPY <<'EOF' /app/start.sh
-#!/bin/bash
-set -e
-
-# Run migrations
-python manage.py migrate --noinput
-
-# Start Gunicorn
-exec gunicorn \
-    --bind "0.0.0.0:${PORT}" \
-    --workers 2 \
-    --threads 4 \
-    --timeout 0 \
-    --access-logfile - \
-    --error-logfile - \
-    gull_autos.wsgi:application
-EOF
-
-RUN chmod +x /app/start.sh
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Set default port if not provided\n\
+: "${PORT:=8000}"\n\
+\n\
+# Run migrations\n\
+python manage.py migrate --noinput\n\
+\n\
+# Start Gunicorn\n\
+exec gunicorn \\\n\
+    --bind "0.0.0.0:$PORT" \\\n\
+    --workers 2 \\\n\
+    --threads 4 \\\n\
+    --timeout 0 \\\n\
+    --access-logfile - \\\n\
+    --error-logfile - \\\n\
+    gull_autos.wsgi:application\n' > /app/start.sh && chmod +x /app/start.sh
 
 # Run startup script
-CMD ["/app/start.sh"]
+CMD ["/bin/bash", "/app/start.sh"]
 
-# Configure health check with proper port interpolation
+# Configure health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f "http://localhost:${PORT}/" || exit 1
+    CMD PORT="${PORT:-8000}" && curl -f "http://localhost:$PORT/" || exit 1
