@@ -43,26 +43,12 @@ RUN mkdir -p /app/staticfiles /app/media
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear
 
-# Create startup script
-RUN echo '#!/bin/bash\n\
-set -e\n\
-\n\
-# Run migrations\n\
-python manage.py migrate --noinput\n\
-\n\
-# Start Gunicorn\n\
-exec gunicorn \\\n\
-    --bind "0.0.0.0:8000" \\\n\
-    --workers 2 \\\n\
-    --threads 4 \\\n\
-    --timeout 0 \\\n\
-    --access-logfile - \\\n\
-    --error-logfile - \\\n\
-    gull_autos.wsgi:application\n' > /app/start.sh && chmod +x /app/start.sh
+# Ensure start script is executable
+RUN chmod +x /app/start.sh
 
 # Run startup script
-CMD ["/bin/bash", "/app/start.sh"]
+ENTRYPOINT ["/app/start.sh"]
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:8000/health/ || exit 1
+    CMD curl -f "http://localhost:${PORT:-8000}/health/" || exit 1
