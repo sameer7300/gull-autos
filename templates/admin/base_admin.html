@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard - Gull Autos{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            min-width: 300px;
+        }
+        .dropdown.active .dropdown-menu {
+            display: block;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 shadow-lg">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-blue-500">Gull Autos</h1>
+                <p class="text-gray-400 text-sm">Admin Dashboard</p>
+            </div>
+            <nav class="mt-6">
+                <div class="px-4 space-y-2">
+                    <a href="{% url 'admin_dashboard' %}" 
+                       class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_dashboard' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-700 hover:text-white{% endif %} transition-all duration-300">
+                        <i class="fas fa-chart-line mr-3"></i>Dashboard
+                    </a>
+                    <a href="{% url 'admin_products' %}"
+                       class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_products' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-700 hover:text-white{% endif %} transition-all duration-300">
+                        <i class="fas fa-box mr-3"></i>Products
+                    </a>
+                    <a href="{% url 'admin_categories' %}"
+                       class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_categories' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-700 hover:text-white{% endif %} transition-all duration-300">
+                        <i class="fas fa-folder mr-3"></i>Categories
+                    </a>
+                    <a href="{% url 'admin_blog_posts' %}"
+                       class="block px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'admin_blog_posts' %}bg-blue-600 text-white{% else %}text-gray-400 hover:bg-gray-700 hover:text-white{% endif %} transition-all duration-300">
+                        <i class="fas fa-blog mr-3"></i>Blog Posts
+                    </a>
+                    <a href="{% url 'admin_testimonials' %}" class="flex items-center px-4 py-2 text-gray-300 hover:bg-dark-secondary rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_testimonials' %}bg-dark-secondary{% endif %}">
+                        <i class="fas fa-star mr-3"></i>
+                        <span>Testimonials</span>
+                    </a>
+                    <a href="{% url 'admin_contact_messages' %}" class="flex items-center px-4 py-2 text-gray-300 hover:bg-dark-secondary rounded-lg transition-colors {% if request.resolver_match.url_name == 'admin_contact_messages' %}bg-dark-secondary{% endif %}">
+                        <i class="fas fa-envelope mr-3"></i>
+                        <span>Contact Messages</span>
+                        {% with unread_count=unread_messages_count %}
+                            {% if unread_count %}
+                                <span class="ml-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">{{ unread_count }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+                </div>
+            </nav>
+            <div class="absolute bottom-0 w-64 bg-gray-800 p-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-white">{{ request.user.username }}</p>
+                            <p class="text-xs text-gray-400">Superuser</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'admin_logout' %}" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Top Navigation -->
+            <div class="bg-gray-800 shadow-lg">
+                <div class="px-8 py-4 flex items-center justify-between">
+                    <h2 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h2>
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications Dropdown -->
+                        <div class="relative dropdown">
+                            <button onclick="toggleDropdown('notificationsDropdown')" 
+                                    class="relative p-2 text-gray-400 hover:text-white focus:outline-none">
+                                <i class="fas fa-bell"></i>
+                                {% if unread_notifications_count > 0 %}
+                                <span class="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
+                                    {{ unread_notifications_count }}
+                                </span>
+                                {% endif %}
+                            </button>
+                            <div id="notificationsDropdown" 
+                                 class="hidden absolute right-0 mt-2 w-80 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50">
+                                <div class="p-4 border-b border-gray-700">
+                                    <h3 class="text-lg font-semibold text-white">Notifications</h3>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    {% if notifications %}
+                                        {% for notification in notifications %}
+                                        <div class="p-4 border-b border-gray-700 {% if not notification.is_read %}bg-blue-900/20{% endif %}">
+                                            <div class="flex items-start space-x-3">
+                                                <div class="flex-shrink-0">
+                                                    {% if notification.notification_type == 'contact' %}
+                                                        <i class="fas fa-envelope text-blue-400"></i>
+                                                    {% elif notification.notification_type == 'product' %}
+                                                        <i class="fas fa-box text-green-400"></i>
+                                                    {% elif notification.notification_type == 'testimonial' %}
+                                                        <i class="fas fa-star text-yellow-400"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-bell text-purple-400"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm text-gray-300">{{ notification.message }}</p>
+                                                    <p class="mt-1 text-xs text-gray-500">{{ notification.created_at|timesince }} ago</p>
+                                                    {% if notification.link %}
+                                                    <a href="{{ notification.link }}" class="mt-2 inline-block text-xs text-blue-400 hover:text-blue-300">
+                                                        View details <i class="fas fa-arrow-right ml-1"></i>
+                                                    </a>
+                                                    {% endif %}
+                                                </div>
+                                                {% if not notification.is_read %}
+                                                <button onclick="markNotificationAsRead({{ notification.id }})" 
+                                                        class="text-xs text-blue-400 hover:text-blue-300">
+                                                    Mark as read
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="p-4 text-center text-gray-500">
+                                            <i class="fas fa-bell-slash text-4xl mb-2"></i>
+                                            <p>No notifications</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if notifications %}
+                                <div class="p-4 border-t border-gray-700">
+                                    <div class="flex justify-between items-center">
+                                        <a href="{% url 'admin_notifications' %}" class="text-sm text-blue-400 hover:text-blue-300">
+                                            View all
+                                        </a>
+                                        <button onclick="markAllNotificationsAsRead()" 
+                                                class="text-sm text-gray-400 hover:text-white">
+                                            Mark all as read
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Settings Dropdown -->
+                        <div class="relative dropdown">
+                            <button class="text-gray-400 hover:text-white" onclick="toggleDropdown('settingsDropdown')">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <div id="settingsDropdown" class="dropdown-menu bg-gray-800 rounded-lg shadow-xl py-2 z-50">
+                                <a href="{% url 'admin_profile' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                                    <i class="fas fa-user mr-2"></i> Profile Settings
+                                </a>
+                                <a href="{% url 'admin_security' %}" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700">
+                                    <i class="fas fa-shield-alt mr-2"></i> Security
+                                </a>
+                                <div class="border-t border-gray-700 my-2"></div>
+                                <a href="{% url 'admin_logout' %}" class="block px-4 py-2 text-sm text-red-400 hover:bg-gray-700">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div class="p-8">
+                {% if messages %}
+                <div class="mb-8 space-y-4">
+                    {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-500/10 text-red-500{% else %}bg-green-500/10 text-green-500{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% block extra_scripts %}
+    <script>
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            const allDropdowns = document.querySelectorAll('.dropdown > div');
+            allDropdowns.forEach(d => {
+                if (d.id !== id) {
+                    d.classList.add('hidden');
+                }
+            });
+            dropdown.classList.toggle('hidden');
+        }
+
+        function markNotificationAsRead(id) {
+            fetch(`/dashboard/notifications/${id}/mark-read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                }
+            });
+        }
+
+        function markAllNotificationsAsRead() {
+            fetch('/dashboard/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.reload();
+                }
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdowns = document.querySelectorAll('.dropdown');
+            dropdowns.forEach(dropdown => {
+                if (!dropdown.contains(event.target)) {
+                    const dropdownContent = dropdown.querySelector('div[id]');
+                    if (dropdownContent) {
+                        dropdownContent.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+    {% endblock %}
+</body>
+</html>

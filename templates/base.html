@@ -1,0 +1,528 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gull Autos{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'logo-gull-autos.png' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+   <style>
+        :root {
+            --dark-primary: #1a1a1a;
+            --dark-secondary: #2d2d2d;
+        }
+        .bg-dark-primary { background-color: var(--dark-primary); }
+        .bg-dark-secondary { background-color: var(--dark-secondary); }
+        
+        /* Hamburger Menu Animation */
+        .hamburger {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            position: relative;
+            z-index: 60;
+        }
+        
+        .hamburger-line {
+            background-color: white;
+            height: 2px;
+            width: 100%;
+            position: absolute;
+            transition: all 0.3s ease;
+        }
+        
+        .hamburger-line:nth-child(1) { top: 6px; }
+        .hamburger-line:nth-child(2) { top: 50%; transform: translateY(-50%); }
+        .hamburger-line:nth-child(3) { bottom: 6px; }
+        
+        .hamburger.active .hamburger-line:nth-child(1) {
+            transform: translateY(5px) rotate(45deg);
+        }
+        
+        .hamburger.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active .hamburger-line:nth-child(3) {
+            transform: translateY(-5px) rotate(-45deg);
+        }
+        
+        /* Mobile Menu Animation */
+        .mobile-menu {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            visibility: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .mobile-menu.active {
+            transform: translateX(0);
+            visibility: visible;
+        }
+        
+        /* Mobile Submenu Styles */
+        .mobile-submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        
+        .mobile-submenu.active {
+            max-height: none;
+        }
+        
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Prevent body scroll when menu is open */
+        body.menu-open {
+            overflow: hidden;
+        }
+        
+        /* Enhanced Header Styles */
+        .header-search {
+            transition: all 0.3s ease;
+            width: 300px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-search {
+                width: 100%;
+            }
+            .header-search:focus {
+                width: 100% !important;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .header-search:focus {
+                width: 400px;
+            }
+        }
+        
+        .nav-item {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 50%;
+            background-color: #3b82f6;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-item:hover::after {
+            width: 100%;
+        }
+        
+        /* Dropdown Animation */
+        .dropdown-menu {
+            transform-origin: top;
+            transform: scaleY(0);
+            opacity: 0;
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        
+        .dropdown:hover .dropdown-menu {
+            transform: scaleY(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* Header Blur Effect */
+        .header-blur {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        /* Search Results Dropdown */
+        #search-results {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        #search-results.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        /* Mobile Menu Overlay */
+        .mobile-menu-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .nav-sticky {
+            animation: slideDown 0.5s ease forwards;
+        }
+        
+        /* Cookie Consent */
+        .cookie-consent {
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .cookie-consent.show {
+            transform: translateY(0);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-dark-primary text-gray-300 min-h-screen flex flex-col">
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 mobile-menu-overlay" onclick="toggleMobileMenu()"></div>
+
+    <!-- Top Bar -->
+    <div class="bg-dark-secondary py-2 text-sm border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+            <div></div>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="hover:text-blue-500 transform hover:scale-110 transition-transform">
+                    <i class="fab fa-facebook"></i>
+                </a>
+                <a href="#" class="hover:text-blue-500 transform hover:scale-110 transition-transform">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="#" class="hover:text-blue-500 transform hover:scale-110 transition-transform">
+                    <i class="fab fa-instagram"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-dark-primary border-b border-gray-800 relative z-40" id="main-header">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between py-4">
+                <!-- Logo -->
+                <a href="{% url 'home' %}" class="flex items-center space-x-2 group">
+                    <img src="{% static 'logo-gull-autos.png' %}" alt="Gull Autos" class="h-10 group-hover:scale-105 transition-transform">
+                    <div>
+                        <span class="text-2xl font-bold text-white group-hover:text-blue-500 transition-colors">Gull Autos</span>
+                        <p class="text-sm text-gray-400">Since 1995</p>
+                    </div>
+                </a>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-2xl px-4 md:px-8">
+                    <form action="{% url 'global_search' %}" method="get" class="relative group">
+                        <input type="text" 
+                               name="q" 
+                               placeholder="Search products, categories..." 
+                               class="w-full bg-dark-secondary border border-gray-700 rounded-lg py-2 px-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 header-search"
+                               hx-get="{% url 'global_search' %}"
+                               hx-trigger="keyup changed delay:300ms"
+                               hx-target="#search-results"
+                               autocomplete="off">
+                        <button type="submit" class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-hover:text-blue-500">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <!-- Search Results Dropdown -->
+                        <div id="search-results" class="absolute left-0 right-0 top-full mt-2 bg-dark-secondary rounded-lg shadow-xl overflow-hidden z-50">
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="{% url 'home' %}" class="nav-item text-white hover:text-blue-500">Home</a>
+                    <a href="{% url 'product_list' %}" class="nav-item text-white hover:text-blue-500">Products</a>
+                    <a href="{% url 'blog_list' %}" class="nav-item text-white hover:text-blue-500">Blog</a>
+                    <a href="{% url 'about' %}" class="nav-item text-white hover:text-blue-500">About</a>
+                    <a href="{% url 'testimonials' %}" class="nav-item text-white hover:text-blue-500">Testimonials</a>
+                    <a href="{% url 'contact' %}" class="nav-item text-white hover:text-blue-500">Contact</a>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden hamburger" onclick="toggleMobileMenu()" aria-label="Toggle Menu">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="md:hidden fixed inset-y-0 left-0 w-64 bg-dark-secondary shadow-lg mobile-menu z-50">
+        <div class="p-6 space-y-6 h-full overflow-y-auto">
+            <div class="flex items-center justify-between mb-8">
+                <span class="text-xl font-bold text-white">Menu</span>
+                <button onclick="toggleMobileMenu()" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <nav class="space-y-4">
+                <a href="{% url 'home' %}" class="block text-white hover:text-blue-500 transition-colors py-2">Home</a>
+                <a href="{% url 'product_list' %}" class="block text-white hover:text-blue-500 transition-colors py-2">Products</a>
+                <a href="{% url 'blog_list' %}" class="block text-white hover:text-blue-500 transition-colors py-2">Blog</a>
+                <a href="{% url 'about' %}" class="block text-white hover:text-blue-500 transition-colors py-2">About</a>
+                <a href="{% url 'testimonials' %}" class="block text-white hover:text-blue-500 transition-colors py-2">Testimonials</a>
+                <a href="{% url 'contact' %}" class="block text-white hover:text-blue-500 transition-colors py-2">Contact</a>
+            </nav>
+            <div class="pt-6 border-t border-gray-700 mt-auto">
+                <div class="flex justify-center space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-blue-500 transform hover:scale-110 transition-all">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-500 transform hover:scale-110 transition-all">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-500 transform hover:scale-110 transition-all">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-dark-primary border-t border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                <!-- About Section -->
+                <div class="space-y-6">
+                    <div class="flex items-center space-x-2">
+                        <img src="{% static 'logo-gull-autos.png' %}" alt="Gull Autos Logo" class="h-10">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">Gull Autos</h3>
+                            <p class="text-sm text-gray-400">Since 1995</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-400 leading-relaxed">Your premier destination for quality auto parts and accessories. We pride ourselves on providing exceptional service and genuine parts.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-blue-400 transition-colors duration-300">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-pink-500 transition-colors duration-300">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-blue-700 transition-colors duration-300">
+                            <i class="fab fa-linkedin-in text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="space-y-6">
+                    <h3 class="text-lg font-semibold text-white relative pb-2 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-blue-500">Quick Links</h3>
+                    <ul class="space-y-3">
+                        <li>
+                            <a href="{% url 'home' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'product_list' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span>Products</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'about' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span>About Us</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'testimonials' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span>Testimonials</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'contact' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300 flex items-center space-x-2">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span>Contact</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="space-y-6">
+                    <h3 class="text-lg font-semibold text-white relative pb-2 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-blue-500">Contact Info</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-center space-x-3 group">
+                            <div class="w-10 h-10 rounded-full bg-blue-500 bg-opacity-10 flex items-center justify-center group-hover:bg-blue-500 transition-colors duration-300">
+                                <i class="fas fa-map-marker-alt text-blue-500 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <span class="text-gray-400">Gull Autos, Main Bazar Shuba market, Batkhela</span>
+                        </li>
+                        <li class="flex items-center space-x-3 group">
+                            <div class="w-10 h-10 rounded-full bg-blue-500 bg-opacity-10 flex items-center justify-center group-hover:bg-blue-500 transition-colors duration-300">
+                                <i class="fas fa-phone-alt text-blue-500 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <a href="tel:+923450472345" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">+92 345 0472345</a>
+                        </li>
+                        <li class="flex items-center space-x-3 group">
+                            <div class="w-10 h-10 rounded-full bg-blue-500 bg-opacity-10 flex items-center justify-center group-hover:bg-blue-500 transition-colors duration-300">
+                                <i class="fas fa-envelope text-blue-500 group-hover:text-white transition-colors duration-300"></i>
+                            </div>
+                            <a href="mailto:info@gullautos.com" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">info@gullautos.com</a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="space-y-6">
+                    <h3 class="text-lg font-semibold text-white relative pb-2 after:content-[''] after:absolute after:left-0 after:bottom-0 after:h-0.5 after:w-12 after:bg-blue-500">Newsletter</h3>
+                    <p class="text-gray-400">Subscribe to our newsletter for updates and exclusive offers.</p>
+                    <form id="newsletter-form" class="space-y-3">
+                        {% csrf_token %}
+                        <div class="relative">
+                            <input type="email" name="email" placeholder="Enter your email" class="w-full bg-dark-secondary border border-gray-700 rounded-lg pl-4 pr-12 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors">
+                            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center w-8 h-8">
+                                <span class="subscribe-text">
+                                    <i class="fas fa-paper-plane"></i>
+                                </span>
+                                <span class="loading-spinner hidden">
+                                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </div>
+                        <div id="newsletter-message" class="text-sm"></div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="mt-12 pt-8 border-t border-gray-800">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <p class="text-gray-400 text-sm">
+                        &copy; {% now "Y" %} Gull Autos. All rights reserved.
+                    </p>
+                    <div class="flex items-center space-x-4 text-sm">
+                        <a href="{% url 'privacy' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">Privacy Policy</a>
+                        <span class="text-gray-700">•</span>
+                        <a href="{% url 'terms' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">Terms of Service</a>
+                        <span class="text-gray-700">•</span>
+                        <a href="{% url 'cookies' %}" class="text-gray-400 hover:text-blue-500 transition-colors duration-300">Cookie Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/animations.js' %}"></script>
+    <script>
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const overlay = document.getElementById('mobile-menu-overlay');
+            const hamburger = document.querySelector('.hamburger');
+            
+            // Toggle classes for menu, overlay, and hamburger
+            mobileMenu.classList.toggle('active');
+            overlay.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        function toggleMobileSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const allSubmenus = document.querySelectorAll('.mobile-submenu');
+            
+            // Close other submenus
+            allSubmenus.forEach(menu => {
+                if (menu.id !== id && menu.classList.contains('active')) {
+                    menu.classList.remove('active');
+                    menu.style.maxHeight = '0px';
+                }
+            });
+            
+            // Toggle current submenu
+            submenu.classList.toggle('active');
+            if (submenu.classList.contains('active')) {
+                submenu.style.maxHeight = submenu.scrollHeight + 'px';
+            } else {
+                submenu.style.maxHeight = '0px';
+            }
+        }
+
+        // Show/hide search results
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('input[name="q"]');
+            const searchResults = document.getElementById('search-results');
+            
+            if (searchInput && searchResults) {
+                searchInput.addEventListener('focus', function() {
+                    searchResults.classList.remove('hidden');
+                });
+
+                document.addEventListener('click', function(e) {
+                    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                        searchResults.classList.add('hidden');
+                    }
+                });
+            }
+        });
+
+        // Cookie Consent
+        function acceptCookies() {
+            document.getElementById('cookie-consent').classList.add('hidden');
+            localStorage.setItem('cookieConsent', 'true');
+        }
+
+        // Check if user has already accepted cookies
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('cookieConsent')) {
+                setTimeout(function() {
+                    document.getElementById('cookie-consent').classList.remove('hidden');
+                }, 2000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}{{ action }} Blog Post - Gull Autos Admin{% endblock %}
+{% block page_title %}{{ action }} Blog Post{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <form method="POST" enctype="multipart/form-data" class="bg-gray-800 rounded-xl p-6 shadow-lg">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="space-y-6 mb-8">
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-400 mb-2">Title</label>
+                <input type="text" id="title" name="title" required
+                       value="{{ post.title|default:'' }}"
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label for="excerpt" class="block text-sm font-medium text-gray-400 mb-2">Excerpt</label>
+                <textarea id="excerpt" name="excerpt" rows="2" required
+                          class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ post.excerpt|default:'' }}</textarea>
+            </div>
+
+            <div>
+                <label for="content" class="block text-sm font-medium text-gray-400 mb-2">Content</label>
+                <textarea id="content" name="content" rows="12" required
+                          class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">{{ post.content|default:'' }}</textarea>
+            </div>
+        </div>
+
+        <!-- Image -->
+        <div class="space-y-6 mb-8">
+            <div>
+                <label for="image" class="block text-sm font-medium text-gray-400 mb-2">Featured Image</label>
+                <input type="file" id="image" name="image" accept="image/*"
+                       class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            {% if post and post.image %}
+            <div class="relative group inline-block">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="h-48 object-cover rounded-lg">
+                <button type="button" onclick="deleteImage()"
+                        class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <i class="fas fa-trash text-white text-xl"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Settings -->
+        <div class="space-y-6 mb-8">
+            <h3 class="text-lg font-semibold text-white">Settings</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-400 mb-2">Status</label>
+                    <select id="status" name="status" required
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="draft" {% if post.status == 'draft' %}selected{% endif %}>Draft</option>
+                        <option value="published" {% if post.status == 'published' %}selected{% endif %}>Published</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="author" class="block text-sm font-medium text-gray-400 mb-2">Author</label>
+                    <select id="author" name="author" required
+                            class="w-full px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {% for user in users %}
+                        <option value="{{ user.id }}" 
+                            {% if post and post.author_id == user.id %}selected
+                            {% elif not post and user.id == default_author.id %}selected{% endif %}>
+                            {{ user.get_full_name|default:user.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'admin_blog_posts' %}" 
+               class="px-6 py-2 text-gray-400 hover:text-white transition-colors duration-300">
+                Cancel
+            </a>
+            <button type="submit" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-300">
+                {{ action }} Post
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function deleteImage() {
+    if (confirm('Are you sure you want to delete this image?')) {
+        fetch(`/dashboard/blog-posts/{{ post.id }}/delete-image/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error deleting image');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

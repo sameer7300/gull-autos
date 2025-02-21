@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Customer Testimonials - Gull Autos{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Existing animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes floatAnimation {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes glowPulse {
+        0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    }
+
+    /* New form animations */
+    @keyframes formFieldFadeIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes borderGlow {
+        0% { border-color: rgba(59, 130, 246, 0.3); }
+        50% { border-color: rgba(59, 130, 246, 0.8); }
+        100% { border-color: rgba(59, 130, 246, 0.3); }
+    }
+
+    @keyframes gradientFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .form-container {
+        background: linear-gradient(135deg, 
+            rgba(30, 41, 59, 0.8),
+            rgba(30, 41, 59, 0.9),
+            rgba(30, 41, 59, 0.8)
+        );
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .form-field {
+        opacity: 0;
+        animation: formFieldFadeIn 0.5s ease-out forwards;
+    }
+
+    .form-field:nth-child(1) { animation-delay: 0.1s; }
+    .form-field:nth-child(2) { animation-delay: 0.2s; }
+    .form-field:nth-child(3) { animation-delay: 0.3s; }
+    .form-field:nth-child(4) { animation-delay: 0.4s; }
+    .form-field:nth-child(5) { animation-delay: 0.5s; }
+    .form-field:nth-child(6) { animation-delay: 0.6s; }
+
+    .form-input {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background: rgba(55, 65, 81, 0.8);
+    }
+
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .form-label {
+        transition: all 0.3s ease;
+        position: relative;
+        display: inline-block;
+    }
+
+    .form-label::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 0;
+        background-color: #3b82f6;
+        transition: width 0.3s ease;
+    }
+
+    .form-field:hover .form-label::after {
+        width: 100%;
+    }
+
+    .submit-button {
+        background: linear-gradient(45deg, #3b82f6, #2563eb, #1d4ed8);
+        background-size: 200% 200%;
+        animation: gradientFlow 3s ease infinite;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .submit-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent
+        );
+        transition: 0.5s;
+    }
+
+    .submit-button:hover::before {
+        left: 100%;
+    }
+
+    .submit-button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .submit-button:active {
+        transform: translateY(-1px);
+    }
+
+    .file-upload-button {
+        background: linear-gradient(45deg, #3b82f6, #2563eb);
+        transition: all 0.3s ease;
+    }
+
+    .file-upload-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Enhanced star rating */
+    .star-rating label {
+        transition: transform 0.3s ease;
+    }
+
+    .star-rating label:hover {
+        transform: rotate(12deg) scale(1.2);
+    }
+
+    .star-rating label:hover ~ label {
+        transform: rotate(12deg) scale(1.1);
+    }
+
+    .form-section-title {
+        background: linear-gradient(90deg, #3b82f6, #2563eb);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    /* Form sections divider */
+    .form-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+        margin: 2rem 0;
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out forwards;
+        animation-delay: 0.3s;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes floatAnimation {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+
+    @keyframes glowPulse {
+        0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+    }
+
+    @keyframes starPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+    }
+
+    .testimonial-card {
+        animation: fadeInUp 0.6s ease-out;
+        transition: all 0.3s ease;
+    }
+
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .floating-element {
+        animation: floatAnimation 3s ease-in-out infinite;
+    }
+
+    .glow-effect {
+        animation: glowPulse 2s infinite;
+    }
+
+    .star-rating i {
+        transition: color 0.3s ease;
+    }
+
+    .star-rating i:hover {
+        animation: starPop 0.3s ease;
+    }
+
+    .quote-mark {
+        position: absolute;
+        font-size: 120px;
+        opacity: 0.1;
+        font-family: Georgia, serif;
+        line-height: 1;
+        z-index: 0;
+    }
+
+    .quote-mark-left {
+        top: -20px;
+        left: 10px;
+    }
+
+    .quote-mark-right {
+        bottom: -60px;
+        right: 10px;
+        transform: rotate(180deg);
+    }
+
+    .testimonial-image-container {
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+
+    .testimonial-image-container:hover {
+        transform: scale(1.05);
+    }
+
+    .testimonial-image-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+            to right,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+        );
+        transform: skewX(-25deg);
+        animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+        100% {
+            left: 200%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-dark-primary min-h-screen py-12 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-20 left-10 w-64 h-64 bg-blue-500 rounded-full filter blur-3xl opacity-10 floating-element"></div>
+        <div class="absolute bottom-20 right-10 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl opacity-10 floating-element" style="animation-delay: -1s"></div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mb-8">
+        {% for message in messages %}
+        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-800 text-green-100{% else %}bg-red-800 text-red-100{% endif %} glow-effect">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Submit Testimonial Section -->
+    <div class="max-w-4xl mx-auto px-4 mb-16 relative z-10">
+        <div class="form-container rounded-2xl p-8 shadow-2xl">
+            <h2 class="form-section-title text-4xl font-bold mb-8 text-center">Share Your Experience</h2>
+            
+            <form action="{% url 'testimonial_submit' %}" method="POST" enctype="multipart/form-data" class="space-y-8">
+                {% csrf_token %}
+                
+                <div class="form-field">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="group">
+                            <label for="name" class="form-label block text-sm font-medium text-gray-300 mb-2">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>Name *
+                            </label>
+                            <input type="text" name="name" id="name" required
+                                class="form-input block w-full rounded-lg text-white focus:ring-blue-500 px-4 py-3">
+                        </div>
+                        <div class="group">
+                            <label for="role" class="form-label block text-sm font-medium text-gray-300 mb-2">
+                                <i class="fas fa-briefcase mr-2 text-blue-500"></i>Role
+                            </label>
+                            <input type="text" name="role" id="role"
+                                class="form-input block w-full rounded-lg text-white focus:ring-blue-500 px-4 py-3">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-divider"></div>
+                
+                <div class="form-field">
+                    <div class="group">
+                        <label for="company" class="form-label block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-building mr-2 text-blue-500"></i>Company
+                        </label>
+                        <input type="text" name="company" id="company"
+                            class="form-input block w-full rounded-lg text-white focus:ring-blue-500 px-4 py-3">
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <div class="group relative">
+                        <label for="message" class="form-label block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-comment mr-2 text-blue-500"></i>Your Message *
+                        </label>
+                        <div class="quote-mark quote-mark-left">"</div>
+                        <textarea name="message" id="message" rows="4" required
+                            class="form-input block w-full rounded-lg text-white focus:ring-blue-500 px-4 py-3 relative z-10"></textarea>
+                        <div class="quote-mark quote-mark-right">"</div>
+                    </div>
+                </div>
+
+                <div class="form-divider"></div>
+
+                <div class="form-field">
+                    <div class="group">
+                        <label class="form-label block text-sm font-medium text-gray-300 mb-4">
+                            <i class="fas fa-star mr-2 text-blue-500"></i>Rating *
+                        </label>
+                        <div class="flex items-center justify-center space-x-4 star-rating">
+                            {% for i in "12345" %}
+                            <label class="relative cursor-pointer transition-transform hover:scale-110">
+                                <input type="radio" name="rating" value="{{ i }}" class="sr-only peer" {% if i == "5" %}checked{% endif %}>
+                                <i class="fas fa-star text-4xl cursor-pointer peer-checked:text-yellow-500 text-gray-600 hover:text-yellow-500 transition-all duration-300"></i>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field">
+                    <div class="group">
+                        <label class="form-label block text-sm font-medium text-gray-300 mb-2">
+                            <i class="fas fa-camera mr-2 text-blue-500"></i>Your Photo
+                        </label>
+                        <div class="mt-1 flex items-center justify-center space-x-4">
+                            <label class="file-upload-button cursor-pointer rounded-lg px-6 py-3 text-white transition-all duration-300 group flex items-center">
+                                <i class="fas fa-cloud-upload-alt mr-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="group-hover:text-gray-100">Choose file</span>
+                                <input type="file" name="image" class="hidden" accept="image/*">
+                            </label>
+                            <span class="text-sm text-gray-400">Optional</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-field mt-8">
+                    <button type="submit" class="submit-button w-full text-white py-4 px-8 rounded-lg text-lg font-semibold flex items-center justify-center space-x-2">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit Testimonial</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Testimonials Display Section -->
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <h2 class="text-4xl font-bold text-white mb-12 text-center">What Our Customers Say</h2>
+        
+        {% if testimonials %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for testimonial in testimonials %}
+            <div class="testimonial-card bg-dark-secondary rounded-xl p-6 shadow-xl relative overflow-hidden" style="animation-delay: {% widthratio forloop.counter 1 150 %}ms">
+                <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-xl"></div>
+                <div class="relative z-10">
+                    <div class="flex items-start space-x-4">
+                        <div class="testimonial-image-container">
+                            {% if testimonial.image %}
+                            <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}" 
+                                 class="w-16 h-16 rounded-full object-cover border-2 border-blue-500">
+                            {% else %}
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center border-2 border-blue-500">
+                                <span class="text-2xl text-white font-bold">{{ testimonial.name|make_list|first }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">{{ testimonial.name }}</h3>
+                            {% if testimonial.role or testimonial.company %}
+                            <p class="text-gray-400">
+                                {% if testimonial.role %}{{ testimonial.role }}{% endif %}
+                                {% if testimonial.role and testimonial.company %} at {% endif %}
+                                {% if testimonial.company %}{{ testimonial.company }}{% endif %}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <div class="flex text-yellow-500 mb-3 star-rating">
+                            {% for i in "12345" %}
+                            <i class="fas fa-star {% if forloop.counter > testimonial.rating %}text-gray-600{% endif %}"
+                               style="animation-delay: {% widthratio forloop.counter 1 100 %}ms"></i>
+                            {% endfor %}
+                        </div>
+                        <div class="relative">
+                            <div class="quote-mark quote-mark-left text-4xl">"</div>
+                            <p class="text-gray-300 relative z-10 px-4">{{ testimonial.message }}</p>
+                            <div class="quote-mark quote-mark-right text-4xl">"</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 text-sm text-gray-400 flex items-center space-x-2">
+                        <i class="far fa-clock"></i>
+                        <span>{{ testimonial.created_at|date:"F j, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-gray-400 py-12">
+            <i class="fas fa-comments text-6xl mb-4 text-gray-600"></i>
+            <p class="text-xl">No testimonials yet. Be the first to share your experience!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Preview image before upload
+    const fileInput = document.querySelector('input[type="file"]');
+    fileInput.addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name;
+        if (fileName) {
+            const label = this.previousElementSibling;
+            label.textContent = fileName.length > 20 ? fileName.substring(0, 17) + '...' : fileName;
+        }
+    });
+
+    // Star rating interaction
+    const stars = document.querySelectorAll('input[name="rating"]');
+    stars.forEach(star => {
+        star.addEventListener('change', function() {
+            const value = this.value;
+            stars.forEach(s => {
+                const starIcon = s.nextElementSibling;
+                if (s.value <= value) {
+                    starIcon.classList.add('text-yellow-500');
+                    starIcon.classList.remove('text-gray-600');
+                    starIcon.style.animation = 'starPop 0.3s ease';
+                } else {
+                    starIcon.classList.remove('text-yellow-500');
+                    starIcon.classList.add('text-gray-600');
+                    starIcon.style.animation = 'none';
+                }
+            });
+        });
+    });
+
+    // Intersection Observer for scroll animations
+    const cards = document.querySelectorAll('.testimonial-card');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

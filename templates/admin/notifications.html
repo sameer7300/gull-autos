@@ -1,0 +1,117 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Notifications - Admin Dashboard{% endblock %}
+
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+            <h3 class="text-xl font-semibold">All Notifications</h3>
+            {% if notifications %}
+                <button onclick="markAllAsRead()" class="text-sm text-blue-400 hover:text-blue-300">
+                    Mark all as read
+                </button>
+            {% endif %}
+        </div>
+        
+        <div class="divide-y divide-gray-700">
+            {% for notification in notifications %}
+                <div class="p-6 {% if not notification.is_read %}bg-blue-900/20{% endif %}" id="notification-{{ notification.id }}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-sm font-medium text-gray-300">
+                                    {% if notification.notification_type == 'contact' %}
+                                        <i class="fas fa-envelope text-blue-400"></i>
+                                    {% elif notification.notification_type == 'order' %}
+                                        <i class="fas fa-shopping-cart text-green-400"></i>
+                                    {% elif notification.notification_type == 'testimonial' %}
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    {% else %}
+                                        <i class="fas fa-bell text-purple-400"></i>
+                                    {% endif %}
+                                </span>
+                                <span class="text-sm font-medium text-gray-300">
+                                    {{ notification.get_notification_type_display }}
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    {{ notification.created_at|timesince }} ago
+                                </span>
+                            </div>
+                            <p class="mt-2 text-gray-300">{{ notification.message }}</p>
+                        </div>
+                        {% if not notification.is_read %}
+                            <button onclick="markAsRead({{ notification.id }})" class="text-xs text-blue-400 hover:text-blue-300">
+                                Mark as read
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% if notification.link %}
+                        <a href="{{ notification.link }}" class="mt-4 inline-block text-sm text-blue-400 hover:text-blue-300">
+                            View details <i class="fas fa-arrow-right ml-1"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="p-6 text-center text-gray-500">
+                    <i class="fas fa-bell-slash text-4xl mb-4"></i>
+                    <p>No notifications yet</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function markAsRead(notificationId) {
+        fetch(`/dashboard/notifications/${notificationId}/mark-read/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const notification = document.getElementById(`notification-${notificationId}`);
+                notification.classList.remove('bg-blue-900/20');
+                const markReadBtn = notification.querySelector('button');
+                if (markReadBtn) markReadBtn.remove();
+            }
+        });
+    }
+
+    function markAllAsRead() {
+        fetch('/dashboard/notifications/mark-all-read/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload();
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

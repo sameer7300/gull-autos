@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Products - Gull Autos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">Our Products</h1>
+
+    <!-- Categories -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Categories</h2>
+        <div class="flex flex-wrap gap-4">
+            <a href="{% url 'product_list' %}" 
+               class="px-4 py-2 {% if not request.resolver_match.kwargs.category_slug %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-full hover:bg-blue-600 hover:text-white transition-colors">
+                All Products
+            </a>
+            {% for category in categories %}
+            <a href="{% url 'product_list_by_category' category.slug %}" 
+               class="px-4 py-2 {% if request.resolver_match.kwargs.category_slug == category.slug %}bg-blue-600 text-white{% else %}bg-gray-200{% endif %} rounded-full hover:bg-blue-600 hover:text-white transition-colors">
+                {{ category.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for product in products %}
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            {% if product.images.exists %}
+            <img src="{{ product.images.first.image.url }}" 
+                 alt="{{ product.name }}" 
+                 class="w-full h-48 object-cover">
+            {% endif %}
+            <div class="p-4">
+                <h3 class="text-xl font-semibold mb-2">{{ product.name }}</h3>
+                <p class="text-gray-600 mb-4">{{ product.description|truncatewords:20 }}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-2xl font-bold text-blue-600">${{ product.price }}</span>
+                    <a href="{% url 'product_detail' product.slug %}" 
+                       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-600">No products found in this category.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <nav class="flex items-center space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" 
+               class="px-3 py-2 rounded-md bg-gray-200 hover:bg-blue-600 hover:text-white">
+                Previous
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <span class="px-3 py-2 rounded-md bg-blue-600 text-white">{{ num }}</span>
+            {% else %}
+            <a href="?page={{ num }}" 
+               class="px-3 py-2 rounded-md bg-gray-200 hover:bg-blue-600 hover:text-white">
+                {{ num }}
+            </a>
+            {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" 
+               class="px-3 py-2 rounded-md bg-gray-200 hover:bg-blue-600 hover:text-white">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

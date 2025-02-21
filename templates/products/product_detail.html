@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Gull Autos{% endblock %}
+
+{% block extra_head %}
+<style>
+    .product-image-thumb {
+        transition: all 0.3s ease;
+    }
+    .product-image-thumb:hover {
+        transform: scale(1.05);
+    }
+    .product-image-thumb.active {
+        border: 2px solid #3498db;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bg-dark-primary min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="mb-8">
+            <ol class="flex space-x-2 text-gray-400">
+                <li><a href="{% url 'home' %}" class="hover:text-blue-500">Home</a></li>
+                <li>/</li>
+                <li><a href="{% url 'product_list' %}" class="hover:text-blue-500">Products</a></li>
+                <li>/</li>
+                <li class="text-gray-300">{{ product.name }}</li>
+            </ol>
+        </nav>
+
+        <div class="bg-dark-secondary rounded-lg shadow-lg overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
+                <!-- Product Images -->
+                <div class="space-y-4">
+                    {% if product.images.first %}
+                    <div class="aspect-w-1 aspect-h-1">
+                        <img id="main-product-image" src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                             class="w-full h-full object-cover rounded-lg">
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Thumbnail Gallery -->
+                    <div class="grid grid-cols-4 gap-4">
+                        {% for image in product.images.all %}
+                        <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
+                             class="product-image-thumb w-full h-24 object-cover rounded-lg cursor-pointer {% if forloop.first %}active{% endif %}"
+                             onclick="updateMainImage(this, '{{ image.image.url }}')">
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Product Information -->
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <h1 class="text-3xl font-bold text-white">{{ product.name }}</h1>
+                        {% if product.is_featured %}
+                        <span class="px-3 py-1 bg-yellow-600 text-white rounded-full text-sm">Featured</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <span class="text-3xl font-bold text-blue-500">${{ product.price }}</span>
+                        {% if product.stock > 0 %}
+                        <span class="px-3 py-1 bg-green-600 text-white rounded-full text-sm">In Stock ({{ product.stock }} available)</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-red-600 text-white rounded-full text-sm">Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="prose prose-invert max-w-none">
+                        <h3 class="text-xl font-semibold text-white mb-4">Description</h3>
+                        <p class="text-gray-300">{{ product.description }}</p>
+                    </div>
+
+                    <!-- Category Information -->
+                    <div class="bg-dark-primary rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-white mb-2">Category</h3>
+                        <a href="{% url 'product_list_by_category' product.category.slug %}" 
+                           class="text-blue-500 hover:text-blue-400">
+                            {{ product.category.name }}
+                        </a>
+                    </div>
+
+                    <!-- Contact Section -->
+                    <div class="pt-6">
+                        <h3 class="text-xl font-semibold text-white mb-4">Interested in this product?</h3>
+                        <p class="text-gray-300 mb-4">Contact us for more information or to place an order.</p>
+                        <div class="flex space-x-4">
+                            <a href="{% url 'contact' %}?product={{ product.slug }}" 
+                               class="flex-1 inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors text-center">
+                                Contact Us About This Product
+                            </a>
+                            {% if product.stock > 0 %}
+                           
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Products -->
+            {% if related_products %}
+            <div class="border-t border-gray-700 p-8">
+                <h2 class="text-2xl font-bold text-white mb-6">Related Products</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {% for related in related_products %}
+                    <div class="bg-dark-primary rounded-lg shadow overflow-hidden">
+                        {% if related.images.first %}
+                        <img src="{{ related.images.first.image.url }}" alt="{{ related.name }}" class="w-full h-48 object-cover">
+                        {% endif %}
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-white mb-2">{{ related.name }}</h3>
+                            <p class="text-gray-400 mb-4">{{ related.description|truncatewords:15 }}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xl font-bold text-blue-500">${{ related.price }}</span>
+                                <a href="{% url 'product_detail' related.slug %}" 
+                                   class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateMainImage(thumbnail, imageUrl) {
+    // Remove active class from all thumbnails
+    document.querySelectorAll('.product-image-thumb').forEach(thumb => {
+        thumb.classList.remove('active');
+    });
+    
+    // Add active class to clicked thumbnail
+    thumbnail.classList.add('active');
+    
+    // Update main image
+    document.getElementById('main-product-image').src = imageUrl;
+}
+</script>
+{% endblock %}

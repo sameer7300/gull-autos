@@ -1,0 +1,47 @@
+{% if not query %}
+    <div class="text-gray-400 p-4">Start typing to search...</div>
+{% else %}
+    {% if total_count == 0 %}
+        <div class="text-gray-400 p-4">No results found for "{{ query }}"</div>
+    {% else %}
+        <div class="divide-y divide-gray-700">
+            {% if categories %}
+                <div class="p-4">
+                    <h3 class="text-sm font-semibold text-gray-400 mb-2">Categories</h3>
+                    {% for category in categories|slice:":3" %}
+                        <a href="{% url 'category_detail' category.slug %}" class="block py-2 px-4 hover:bg-blue-600 rounded-lg transition-colors">
+                            <div class="text-white font-medium">{{ category.name }}</div>
+                            <div class="text-sm text-gray-400">{{ category.description|truncatewords:10 }}</div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if products %}
+                <div class="p-4">
+                    <h3 class="text-sm font-semibold text-gray-400 mb-2">Products</h3>
+                    {% for product in products|slice:":5" %}
+                        <a href="{% url 'product_detail' product.slug %}" class="block py-2 px-4 hover:bg-blue-600 rounded-lg transition-colors">
+                            <div class="flex items-center">
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-12 h-12 object-cover rounded">
+                                <div class="ml-3">
+                                    <div class="text-white font-medium">{{ product.name }}</div>
+                                    <div class="text-sm text-gray-400">{{ product.description|truncatewords:10 }}</div>
+                                    <div class="text-blue-500">${{ product.price }}</div>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if total_count > 8 %}
+                <div class="p-4 text-center">
+                    <a href="{% url 'global_search' %}?q={{ query }}" class="text-blue-500 hover:text-blue-400">
+                        View all {{ total_count }} results →
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endif %}

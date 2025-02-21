@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog - Gull Autos{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="text-4xl font-bold mb-8">Our Blog</h1>
+
+    <!-- Blog Posts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for post in posts %}
+        <article class="bg-white rounded-lg shadow-lg overflow-hidden">
+            {% if post.image %}
+            <img src="{{ post.image.url }}" 
+                 alt="{{ post.title }}" 
+                 class="w-full h-48 object-cover">
+            {% endif %}
+            <div class="p-6">
+                <div class="flex items-center text-sm text-gray-500 mb-4">
+                    <time datetime="{{ post.created_at|date:'Y-m-d' }}">
+                        {{ post.created_at|date:"F j, Y" }}
+                    </time>
+                    {% if post.category %}
+                    <span class="mx-2">&bull;</span>
+                    <span>{{ post.category }}</span>
+                    {% endif %}
+                </div>
+                <h2 class="text-xl font-semibold mb-3">
+                    <a href="{% url 'blog_detail' post.slug %}" 
+                       class="text-gray-900 hover:text-blue-600">
+                        {{ post.title }}
+                    </a>
+                </h2>
+                <p class="text-gray-600 mb-4">
+                    {{ post.content|truncatewords:30 }}
+                </p>
+                <div class="flex items-center justify-between">
+                    <a href="{% url 'blog_detail' post.slug %}" 
+                       class="text-blue-600 hover:text-blue-800 font-medium">
+                        Read More &rarr;
+                    </a>
+                    {% if post.author %}
+                    <div class="flex items-center">
+                        {% if post.author.profile_image %}
+                        <img src="{{ post.author.profile_image.url }}" 
+                             alt="{{ post.author.name }}" 
+                             class="w-8 h-8 rounded-full mr-2">
+                        {% endif %}
+                        <span class="text-sm text-gray-600">
+                            {{ post.author.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <p class="text-gray-600">No blog posts found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-12">
+        <nav class="flex justify-center">
+            <ul class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                <li>
+                    <a href="?page={{ page_obj.previous_page_number }}" 
+                       class="px-4 py-2 bg-gray-200 rounded-md hover:bg-blue-600 hover:text-white">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                <li>
+                    {% if page_obj.number == num %}
+                    <span class="px-4 py-2 bg-blue-600 text-white rounded-md">
+                        {{ num }}
+                    </span>
+                    {% else %}
+                    <a href="?page={{ num }}" 
+                       class="px-4 py-2 bg-gray-200 rounded-md hover:bg-blue-600 hover:text-white">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                </li>
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                <li>
+                    <a href="?page={{ page_obj.next_page_number }}" 
+                       class="px-4 py-2 bg-gray-200 rounded-md hover:bg-blue-600 hover:text-white">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
