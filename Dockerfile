@@ -25,28 +25,12 @@ RUN apt-get update && apt-get install -y \
     netcat-traditional \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install basic tools
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Copy requirements and install dependencies
-COPY requirements-base.txt .
-RUN pip install --no-cache-dir -r requirements-base.txt
-
-# Copy project
+# Copy requirements and project
 COPY . .
-
-# Create static and media directories
-RUN mkdir -p /app/staticfiles /app/media
-
-# Collect static files
-RUN python manage.py collectstatic --noinput --clear
-
-# Run migrations
-RUN python manage.py migrate --noinput
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
-    CMD curl -f "http://0.0.0.0:$PORT/health/" || exit 1
+    CMD curl -f "http://0.0.0.0:$PORT/" || exit 1
 
-# Start command
-CMD gunicorn gull_autos.wsgi:application --bind "0.0.0.0:$PORT"
+# Start command - exactly as specified by Railway
+CMD gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT
