@@ -2,13 +2,13 @@
 FROM python:3.11-slim
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV PORT 8000
-ENV DJANGO_SETTINGS_MODULE gull_autos.settings
-ENV DEBUG False
-ENV ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1"
-ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=gull_autos.settings \
+    DEBUG=False \
+    ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
+    PYTHONPATH=/app \
+    PORT=8000
 
 # Set work directory
 WORKDIR /app
@@ -47,14 +47,29 @@ RUN mkdir -p /app/staticfiles /app/media
 RUN python manage.py collectstatic --noinput --clear
 
 # Create startup script
-RUN echo '#!/bin/bash\n\
-python manage.py migrate --noinput\n\
-gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 0 gull_autos.wsgi:application' > /app/start.sh \
-    && chmod +x /app/start.sh
+COPY <<'EOF' /app/start.sh
+#!/bin/bash
+set -e
+
+# Run migrations
+python manage.py migrate --noinput
+
+# Start Gunicorn
+exec gunicorn \
+    --bind "0.0.0.0:${PORT}" \
+    --workers 2 \
+    --threads 4 \
+    --timeout 0 \
+    --access-logfile - \
+    --error-logfile - \
+    gull_autos.wsgi:application
+EOF
+
+RUN chmod +x /app/start.sh
 
 # Run startup script
 CMD ["/app/start.sh"]
 
-# Configure health check
+# Configure health check with proper port interpolation
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD curl -f http://localhost:$PORT/ || exit 1
+    CMD curl -f "http://localhost:${PORT}/" || exit 1
