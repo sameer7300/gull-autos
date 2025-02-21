@@ -42,4 +42,4 @@ RUN chmod +x /app/build.sh
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
-    CMD curl -f "http://localhost:${PORT}/health/" || exit 1
+    CMD curl -f "http://0.0.0.0:$PORT/health/" || exit 1
