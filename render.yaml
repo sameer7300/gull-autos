@@ -1,34 +1,27 @@
+databases:
+  - name: gull-db
+    plan: free
+    region: oregon
+
 services:
   - type: web
     name: gull-autos
-    runtime: python
+    env: python
     plan: free
-    buildCommand: ./build.sh
-    startCommand: cd /opt/render/project/src && PYTHONPATH=/opt/render/project/src gunicorn "gull_autos.wsgi:application" --bind "0.0.0.0:$PORT" --log-file -
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    startCommand: "gunicorn gull_autos.wsgi:application"
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.4
-      - key: PORT
-        value: 8000
-      - key: WEB_CONCURRENCY
-        value: 4
       - key: DJANGO_SETTINGS_MODULE
         value: gull_autos.settings
-      - key: DEBUG
-        value: false
+      - key: SECRET_KEY
+        generateValue: true
       - key: ALLOWED_HOSTS
-        value: .onrender.com
+        value: gull-autos.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gull-db
+          property: connectionString
       - key: PYTHONPATH
         value: /opt/render/project/src
-      - key: DATABASE_URL
-        value: sqlite:///db.sqlite3
-      # Add these in Render dashboard for security
-      - key: AWS_ACCESS_KEY_ID
-        sync: false
-      - key: AWS_SECRET_ACCESS_KEY
-        sync: false
-      - key: AWS_STORAGE_BUCKET_NAME
-        sync: false
-      - key: AWS_S3_REGION_NAME
-        value: us-east-1
-    autoDeploy: true
+      - key: DEBUG
+        value: false
