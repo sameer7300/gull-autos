@@ -32,9 +32,6 @@ RUN pip install gunicorn
 # Copy requirements and project
 COPY . .
 
-# Make start script executable
-RUN chmod +x /app/start.sh
-
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
     CMD curl -f http://localhost:$PORT/ || exit 1
