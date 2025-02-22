@@ -8,7 +8,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     DEBUG=False \
     ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
     PYTHONPATH=/app \
-    WEB_CONCURRENCY=4
+    WEB_CONCURRENCY=4 \
+    PORT=8000
 
 # Set work directory
 WORKDIR /app
@@ -31,9 +32,12 @@ RUN pip install gunicorn
 # Copy requirements and project
 COPY . .
 
+# Make start script executable
+RUN chmod +x /app/start.sh
+
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
-    CMD curl -f "http://0.0.0.0:$PORT/" || exit 1
+    CMD curl -f "http://0.0.0.0:8000/" || exit 1
 
-# Start command - exactly as specified by Railway
-CMD gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT
+# Start command using shell script
+CMD ["/bin/sh", "/app/start.sh"]
