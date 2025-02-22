@@ -7,6 +7,64 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* Hamburger Menu Animation */
+        .hamburger {
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            transition: all 0.25s;
+            position: relative;
+        }
+        .hamburger-top,
+        .hamburger-middle,
+        .hamburger-bottom {
+            position: absolute;
+            width: 24px;
+            height: 2px;
+            top: 0;
+            left: 0;
+            background: #fff;
+            transform: rotate(0);
+            transition: all 0.5s;
+        }
+        .hamburger-middle {
+            transform: translateY(7px);
+        }
+        .hamburger-bottom {
+            transform: translateY(14px);
+        }
+        .open .hamburger-top {
+            transform: rotate(45deg) translateY(6px) translateX(6px);
+        }
+        .open .hamburger-middle {
+            display: none;
+        }
+        .open .hamburger-bottom {
+            transform: rotate(-45deg) translateY(6px) translateX(-6px);
+        }
+        
+        /* Sidebar Animation */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        /* Mobile Overlay */
+        .mobile-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .mobile-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Dropdown Menu */
         .dropdown-menu {
             display: none;
             position: absolute;
@@ -17,13 +75,22 @@
         .dropdown.active .dropdown-menu {
             display: block;
         }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+            }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-900 text-white">
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay fixed inset-0 z-20 lg:hidden" onclick="toggleSidebar()"></div>
+
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <div class="w-64 bg-gray-800 shadow-lg">
+        <aside class="sidebar fixed lg:relative w-64 h-full bg-gray-800 shadow-lg z-30">
             <div class="p-6">
                 <h1 class="text-2xl font-bold text-blue-500">Gull Autos</h1>
                 <p class="text-gray-400 text-sm">Admin Dashboard</p>
@@ -77,14 +144,23 @@
                     </a>
                 </div>
             </div>
-        </div>
+        </aside>
 
         <!-- Main Content -->
         <div class="flex-1 overflow-auto">
             <!-- Top Navigation -->
             <div class="bg-gray-800 shadow-lg">
-                <div class="px-8 py-4 flex items-center justify-between">
-                    <h2 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h2>
+                <div class="px-4 sm:px-8 py-4 flex items-center justify-between">
+                    <!-- Hamburger Menu Button -->
+                    <div class="flex items-center space-x-4">
+                        <button class="hamburger lg:hidden focus:outline-none" onclick="toggleSidebar()">
+                            <span class="hamburger-top"></span>
+                            <span class="hamburger-middle"></span>
+                            <span class="hamburger-bottom"></span>
+                        </button>
+                        <h2 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h2>
+                    </div>
+
                     <div class="flex items-center space-x-4">
                         <!-- Notifications Dropdown -->
                         <div class="relative dropdown">
@@ -198,43 +274,70 @@
         </div>
     </div>
 
-    {% block extra_scripts %}
     <script>
+        // Sidebar Toggle Function
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.mobile-overlay');
+            const hamburger = document.querySelector('.hamburger');
+            
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+            hamburger.classList.toggle('open');
+        }
+
+        // Dropdown Toggle Function
         function toggleDropdown(id) {
-            const dropdown = document.getElementById(id);
-            const allDropdowns = document.querySelectorAll('.dropdown > div');
-            allDropdowns.forEach(d => {
-                if (d.id !== id) {
-                    d.classList.add('hidden');
+            const dropdowns = document.querySelectorAll('.dropdown-menu');
+            dropdowns.forEach(dropdown => {
+                if (dropdown.id !== id) {
+                    dropdown.classList.add('hidden');
                 }
             });
-            dropdown.classList.toggle('hidden');
+            const dropdown = document.getElementById(id);
+            if (dropdown) {
+                dropdown.classList.toggle('hidden');
+            }
         }
 
         function markNotificationAsRead(id) {
-            fetch(`/dashboard/notifications/${id}/mark-read/`, {
+            const csrftoken = getCookie('csrftoken');
+            fetch(`/notifications/${id}/mark-read/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            }).then(response => response.json())
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    window.location.reload();
+                if (data.success) {
+                    const notification = document.getElementById(`notification-${id}`);
+                    if (notification) {
+                        notification.classList.remove('bg-gray-700');
+                        notification.classList.add('bg-gray-800');
+                    }
                 }
             });
         }
 
         function markAllNotificationsAsRead() {
-            fetch('/dashboard/notifications/mark-all-read/', {
+            const csrftoken = getCookie('csrftoken');
+            fetch('/notifications/mark-all-read/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                }
-            }).then(response => response.json())
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    window.location.reload();
+                if (data.success) {
+                    const notifications = document.querySelectorAll('.notification-item');
+                    notifications.forEach(notification => {
+                        notification.classList.remove('bg-gray-700');
+                        notification.classList.add('bg-gray-800');
+                    });
                 }
             });
         }
@@ -259,14 +362,27 @@
             const dropdowns = document.querySelectorAll('.dropdown');
             dropdowns.forEach(dropdown => {
                 if (!dropdown.contains(event.target)) {
-                    const dropdownContent = dropdown.querySelector('div[id]');
-                    if (dropdownContent) {
-                        dropdownContent.classList.add('hidden');
-                    }
+                    dropdown.classList.remove('active');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    if (menu) menu.style.display = 'none';
                 }
             });
         });
+
+        // Close sidebar on window resize if screen becomes large
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) { // lg breakpoint
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.mobile-overlay');
+                const hamburger = document.querySelector('.hamburger');
+                
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                hamburger.classList.remove('open');
+            }
+        });
     </script>
-    {% endblock %}
+
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

@@ -92,7 +92,7 @@
                         {% endif %}
                         <div>
                             <p class="text-white font-medium">{{ product.name }}</p>
-                            <p class="text-blue-500">${{ product.price }}</p>
+                            <p class="text-blue-500">PKR {{ product.price|floatformat:2 }}</p>
                         </div>
                     </div>
                 </div>

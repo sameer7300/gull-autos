@@ -491,8 +491,8 @@ def admin_product_create(request):
             description = request.POST.get('description')
             price = request.POST.get('price')
             stock = request.POST.get('stock')
-            sku = request.POST.get('sku')
             category_id = request.POST.get('category')
+            is_featured = request.POST.get('is_featured') == 'on'
             
             # Create the product
             product = Product.objects.create(
@@ -500,45 +500,54 @@ def admin_product_create(request):
                 description=description,
                 price=price,
                 stock=stock,
-                sku=sku,
-                category_id=category_id
+                category_id=category_id,
+                is_featured=is_featured,
             )
-            
-            # Handle images
+
+            # Handle image uploads
             images = request.FILES.getlist('images')
-            for image in images:
-                ProductImage.objects.create(product=product, image=image)
-            
+            for index, image in enumerate(images):
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    is_primary=(index == 0),  # First image is primary
+                    alt_text=f"{product.name} image {index + 1}"
+                )
+
             messages.success(request, 'Product created successfully!')
             return redirect('admin_products')
         except Exception as e:
             messages.error(request, f'Error creating product: {str(e)}')
-    
+            return redirect('admin_product_create')
+
     categories = Category.objects.all()
-    return render(request, 'admin/product_form.html', {
-        'action': 'Create',
-        'categories': categories
-    })
+    return render(request, 'admin/product_form.html', {'categories': categories})
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    
     if request.method == 'POST':
         try:
             product.name = request.POST.get('name')
             product.description = request.POST.get('description')
             product.price = request.POST.get('price')
             product.stock = request.POST.get('stock')
-            product.sku = request.POST.get('sku')
             product.category_id = request.POST.get('category')
+            product.is_featured = request.POST.get('is_featured') == 'on'
             product.save()
-            
-            # Handle images
+
+            # Handle image uploads
             images = request.FILES.getlist('images')
-            for image in images:
-                ProductImage.objects.create(product=product, image=image)
-            
+            for index, image in enumerate(images):
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    is_primary=(not product.images.exists()),  # Primary if no other images
+                    alt_text=f"{product.name} image {product.images.count() + index + 1}"
+                )
+
             messages.success(request, 'Product updated successfully!')
             return redirect('admin_products')
         except Exception as e:
@@ -547,7 +556,6 @@ def admin_product_edit(request, pk):
     categories = Category.objects.all()
     return render(request, 'admin/product_form.html', {
         'product': product,
-        'action': 'Edit',
         'categories': categories
     })
 
