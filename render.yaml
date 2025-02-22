@@ -8,7 +8,9 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.4
       - key: DEBUG
-        value: False
+        value: false
       - key: ALLOWED_HOSTS
         value: .onrender.com
+      - key: DJANGO_SETTINGS_MODULE
+        value: gull_autos.settings
     autoDeploy: true
