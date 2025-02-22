@@ -1,12 +1,15 @@
 services:
   - type: web
     name: gull-autos
-    env: python
+    runtime: python
+    plan: free
     buildCommand: ./build.sh
-    startCommand: gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT --log-file -
+    startCommand: cd /opt/render/project/src && PYTHONPATH=/opt/render/project/src gunicorn --chdir /opt/render/project/src gull_autos.wsgi:application --bind 0.0.0.0:$PORT --log-file -
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.4
       - key: PORT
         value: 8000
+      - key: WEB_CONCURRENCY
+        value: 4
     autoDeploy: true
