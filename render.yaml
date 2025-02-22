@@ -2,20 +2,13 @@ services:
   - type: web
     name: gull-autos
     env: python
-    buildCommand: "chmod +x build.sh && ./build.sh"
-    startCommand: "/opt/render/project/src/.venv/bin/gunicorn --chdir /opt/render/project/src gull_autos.wsgi:application --bind=0.0.0.0:$PORT --log-file=-"
+    buildCommand: pip install -r requirements-base.txt
+    startCommand: gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
-      - key: DATABASE_URL
-        sync: false
-      - key: SECRET_KEY
-        generateValue: true
-      - key: WEB_CONCURRENCY
-        value: 4
       - key: PYTHON_VERSION
         value: 3.11.4
-      - key: DJANGO_SETTINGS_MODULE
-        value: gull_autos.settings
-      - key: PORT
-        value: 10000
-      - key: PYTHONUNBUFFERED
-        value: true
+      - key: DEBUG
+        value: False
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+    autoDeploy: true

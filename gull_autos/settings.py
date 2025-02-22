@@ -28,10 +28,10 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']  # Allow all hosts temporarily for debugging
+ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*.railway.app",
+    "https://*.onrender.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
@@ -147,7 +147,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://*.railway.app",
+    "https://*.onrender.com",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
