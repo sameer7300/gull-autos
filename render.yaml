@@ -2,8 +2,8 @@ services:
   - type: web
     name: gull-autos
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --log-file -
+    buildCommand: ./build.sh
+    startCommand: cd /opt/render/project/src && gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT --log-file -
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.4
@@ -14,5 +14,7 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: gull_autos.settings
       - key: PYTHONPATH
-        value: .
+        value: /opt/render/project/src
+      - key: PORT
+        value: 8000
     autoDeploy: true

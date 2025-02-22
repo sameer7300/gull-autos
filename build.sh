@@ -1,9 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# exit on error
+set -o errexit
+
 # Install dependencies
-pip install -r requirements-base.txt
+pip install -r requirements.txt
 
-# Run migrations
-python manage.py migrate --noinput
+# Create .env file
+echo "DEBUG=False" > .env
+echo "ALLOWED_HOSTS=.onrender.com" >> .env
+echo "DJANGO_SETTINGS_MODULE=gull_autos.settings" >> .env
 
-# Collect static files
-python manage.py collectstatic --noinput --clear
+# Run Django commands
+python manage.py collectstatic --noinput
+python manage.py migrate
