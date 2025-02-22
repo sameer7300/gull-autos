@@ -3,15 +3,7 @@ services:
     name: gull-autos
     env: python
     buildCommand: ./build.sh
-    startCommand: >
-      cd /opt/render/project/src &&
-      PYTHONPATH=/opt/render/project/src
-      gunicorn --chdir /opt/render/project/src
-      --pythonpath /opt/render/project/src
-      --bind 0.0.0.0:$PORT
-      --log-file -
-      --env DJANGO_SETTINGS_MODULE=gull_autos.settings
-      gull_autos.wsgi:application
+    startCommand: gunicorn --chdir /opt/render/project/src gull_autos.wsgi:application --bind 0.0.0.0:$PORT --log-file -
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.4
