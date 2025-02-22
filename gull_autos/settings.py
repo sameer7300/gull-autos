@@ -28,9 +28,13 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = ['*']  # Allow all hosts temporarily for debugging
 
-CSRF_TRUSTED_ORIGINS = [f"https://{host.strip()}" for host in ALLOWED_HOSTS if host.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.railway.app",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
 
 
 # Application definition
@@ -140,9 +144,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
-    "https://railway.app",
+    "https://*.railway.app",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]

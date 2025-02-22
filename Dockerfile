@@ -6,10 +6,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DJANGO_SETTINGS_MODULE=gull_autos.settings \
     DEBUG=False \
-    ALLOWED_HOSTS=".railway.app,localhost,127.0.0.1" \
+    ALLOWED_HOSTS="*" \
     PYTHONPATH=/app \
     WEB_CONCURRENCY=4 \
-    PORT=8000
+    PORT=10000
 
 # Set work directory
 WORKDIR /app
@@ -37,7 +37,7 @@ RUN chmod +x /app/start.sh
 
 # Configure health check
 HEALTHCHECK --interval=30s --timeout=100s --start-period=30s --retries=10 \
-    CMD curl -f "http://0.0.0.0:8000/" || exit 1
+    CMD curl -f http://localhost:$PORT/ || exit 1
 
-# Start command using shell script
-CMD ["/bin/sh", "/app/start.sh"]
+# Use shell form to evaluate environment variables
+CMD gunicorn gull_autos.wsgi:application --bind=0.0.0.0:$PORT
