@@ -1,2 +1,10 @@
-from gull_autos.wsgi import application
-app = application
+"""
+WSGI config for gull_autos project.
+"""
+
+import os
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gull_autos.settings')
+
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()
+app = application  # for gunicorn
