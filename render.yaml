@@ -3,7 +3,7 @@ services:
     name: gull-autos
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT
+    startCommand: gunicorn gull_autos.wsgi:application --bind 0.0.0.0:$PORT --log-file -
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.4
@@ -13,4 +13,6 @@ services:
         value: .onrender.com
       - key: DJANGO_SETTINGS_MODULE
         value: gull_autos.settings
+      - key: PYTHONPATH
+        value: /opt/render/project/src
     autoDeploy: true
